@@ -252,3 +252,39 @@ Content Analysis → File Grouping → Batch Translation → Result Merging
 - **Other Text**: `.sql`, `.sh`, `.bat`
 
 Requirements: Generate complete translation for each language, maintain original format and structure.
+
+
+
+
+
+flowchart TD
+
+A[开始<br/>手动触发 workflow_dispatch] --> B[Job test-local 在 ubuntu-latest 运行]
+
+B --> C[Checkout repository<br/>actions/checkout@v4<br/>fetch-depth: 0]
+C --> D[Set up Python 3.9<br/>actions/setup-python@v4]
+D --> E[Install DuoReadme<br/>pip install duoreadme]
+E --> F[Create test_config.yaml<br/>从 Secrets 写入配置:
+- DUOREADME_BOT_APP_KEY
+- TENCENTCLOUD_SECRET_ID
+- TENCENTCLOUD_SECRET_KEY]
+
+F --> G[Apply test configuration<br/>duoreadme set test_config.yaml]
+G --> H[Export current configuration<br/>duoreadme export -o current_config.yaml]
+
+H --> I[Test translation<br/>duoreadme trans --languages zh-Hans,en,ja --verbose]
+
+I -->|成功| J[设置输出:
+- success=true
+- languages_processed
+- translated_files]
+I -->|失败| K[success=false<br/>退出 job（exit 1）]
+
+J --> L[Show test results<br/>打印结果和生成文件内容]
+J --> M[Test commit (dry run)<br/>git status / git diff --name-only]
+
+K --> N[Cleanup test files]
+L --> N
+M --> N
+
+N[删除 test_config.yaml 和 current_config.yaml] --> O[结束]
