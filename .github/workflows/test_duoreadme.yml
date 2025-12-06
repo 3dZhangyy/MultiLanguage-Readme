@@ -2,8 +2,8 @@
 
 # on:
 #   push:
-#     branches: [ main ]
-#     paths: [ 'README.md', 'docs/**' ]
+#     branches: ['main']
+#     paths: ['README.md', 'docs/**']
 #   workflow_dispatch:
 
 # permissions:
