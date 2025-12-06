@@ -259,29 +259,27 @@ Requirements: Generate complete translation for each language, maintain original
 
 ```mermaid
 flowchart TD
+A[开始：手动触发 workflow_dispatch] --> B[在 ubuntu-latest 上运行 test-local 任务]
 
-A[开始<br/>手动触发 workflow_dispatch] --> B[Job test-local 在 ubuntu-latest 运行]
+B --> C[Checkout 仓库代码]
+C --> D[安装 Python 3.9]
+D --> E[使用 pip 安装 DuoReadme]
+E --> F[生成 test_config.yaml（从 Secrets 读取配置）]
 
-B --> C[Checkout repository<br/>actions/checkout@v4<br/>fetch-depth: 0]
-C --> D[Set up Python 3.9<br/>actions/setup-python@v4]
-D --> E[Install DuoReadme<br/>pip install duoreadme]
-E --> F[Create test_config.yaml<br/>从 Secrets 写入配置:
-DUOREADME_BOT_APP_KEY / TENCENTCLOUD_SECRET_ID / TENCENTCLOUD_SECRET_KEY]
+F --> G[应用配置：duoreadme set test_config.yaml]
+G --> H[导出当前配置：duoreadme export]
+H --> I[执行测试翻译：duoreadme trans]
 
-F --> G[Apply test configuration<br/>duoreadme set test_config.yaml]
-G --> H[Export current configuration<br/>duoreadme export -o current_config.yaml]
+I -->|成功| J[设置 success=true 等输出]
+I -->|失败| K[设置 success=false 并退出]
 
-H --> I[Test translation<br/>duoreadme trans --languages zh-Hans,en,ja --verbose]
+J --> L[展示测试结果和生成的文件内容]
+J --> M[查看 git 状态和改动文件（仅展示，不提交）]
 
-I -->|成功| J[设置输出 success=true<br/>languages_processed<br/>translated_files]
-I -->|失败| K[success=false 并 exit 1]
-
-J --> L[Show test results<br/>打印结果和生成的文件内容]
-J --> M[Test commit (dry run)<br/>git status / git diff --name-only]
-
-L --> N[Cleanup test files<br/>删除 test_config.yaml 和 current_config.yaml]
+L --> N[清理临时文件 test_config.yaml 与 current_config.yaml]
 M --> N
 K --> N
 
-N --> O[结束]
+N[结束]
+
 ```
